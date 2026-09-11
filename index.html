@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Vraj's Task List</title>
+
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Vraj's Task List</h1>
+        <p class="intro">A simple list for keeping track of my tasks.</p>
+
+        <div class="task-form-box">
+
+            <h2>Add a Task</h2>
+
+            <form id="task-form">
+
+                <div class="input-group">
+                    <label for="task-input">Task:</label>
+                    <input
+                        type="text"
+                        id="task-input"
+                        placeholder="Enter a task"
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="priority">Priority:</label>
+
+                    <select id="priority">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+
+                <button type="submit">Add Task</button>
+
+            </form>
+
+        </div>
+
+
+        <div class="task-section">
+
+            <div class="task-heading">
+                <h2>My Tasks</h2>
+                <span id="task-count">0 tasks</span>
+            </div>
+
+            <p id="task-message">No tasks added yet.</p>
+
+            <div id="task-list"></div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

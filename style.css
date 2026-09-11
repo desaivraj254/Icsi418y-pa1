@@ -1,0 +1,115 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.intro {
+    text-align: center;
+    color: #555555;
+    margin-bottom: 25px;
+}
+
+.task-form-box {
+    background-color: white;
+    border: 1px solid #cccccc;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.task-form-box h2 {
+    margin-top: 0;
+}
+
+form {
+    display: flex;
+    gap: 10px;
+    align-items: end;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group:first-child {
+    flex: 1;
+}
+
+label {
+    margin-bottom: 5px;
+}
+
+input,
+select,
+button {
+    padding: 8px;
+    font-size: 16px;
+}
+
+button {
+    cursor: pointer;
+}
+
+.task-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#task-message {
+    color: #666666;
+}
+
+.task {
+    background-color: white;
+    border: 1px solid #cccccc;
+    padding: 15px;
+    margin-bottom: 10px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.task-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.task-priority {
+    font-size: 14px;
+    color: #555555;
+}
+
+.task-buttons button {
+    margin-left: 5px;
+}
+
+.low {
+    border-left: 5px solid green;
+}
+
+.medium {
+    border-left: 5px solid orange;
+}
+
+.high {
+    border-left: 5px solid red;
+}
+
+.completed .task-name {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
