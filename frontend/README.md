@@ -1,16 +1,50 @@
-# React + Vite
+# ICSI 418Y – Programming Assignment 4
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+## Project Management Application
 
-Currently, two official plugins are available:
+### About My Project
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+For Programming Assignment 4, I continued working on my project management application from the previous assignments.
 
-## React Compiler
+I built the frontend using React and the backend using Node.js and Express. I used MongoDB Atlas to store the information.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+In my earlier assignments, I added Signup, Login, project creation, and project membership management. For PA4, I extended the application by adding user stories and a project backlog.
 
-## Expanding the Oxlint configuration
+The main goal of this assignment was to allow users to create and manage stories for different projects.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Features
+
+### Signup and Login
+
+Users can create an account by entering their first name, last name, username, and password. Registered users can log in using their credentials.
+
+### Project Management
+
+Users can create a project by entering its name, description, status, and selecting a Project Lead.
+
+The available project statuses are Planning, Active, and Completed. The Project Lead is automatically added as a member when the project is created.
+
+### Project Members
+
+Users can add registered members to a project and remove members when needed.
+
+A user can belong to multiple projects, but the same user cannot be added twice to one project.
+
+The Project Lead cannot be removed. Also, a member who has assigned user stories cannot be removed until those stories are reassigned, unassigned, or deleted.
+
+### User Stories and Project Backlog
+
+For PA4, I added a Project Backlog section where users can create stories for a selected project.
+
+Each story includes:
+
+- Title and description
+- Priority: High, Medium, or Low
+- Status: To Do, In Progress, or Done
+- Assigned member or Unassigned
+
+Every new story starts with the status To Do.
+
+Users can edit stories, change their statuses, update assignments, or delete stories with confirmation.
+
+Each project has its own backlog, so switching projects displays the stories belonging to that project
