@@ -3,11 +3,14 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import Signup from "./components/Signup";
 import Login from "./components/Login";
+import ProjectBacklog from "./components/ProjectBacklog";
 
 const API = "http://localhost:5000";
 
-const fullName = (u) =>
-  u ? `${u.f_name} ${u.l_name} (${u.username})` : "Unknown user";
+const fullName = (user) =>
+  user
+    ? `${user.f_name} ${user.l_name} (${user.username})`
+    : "Unknown user";
 
 async function request(path, options = {}) {
   const response = await fetch(`${API}${path}`, {
@@ -40,6 +43,7 @@ function App() {
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState(false);
+  const [membersLoading, setMembersLoading] = useState(false);
 
   const notify = (text, isError = false) => {
     setMessage(text);
@@ -47,30 +51,64 @@ function App() {
   };
 
   const refreshUsers = async () => {
-    setUsers(await request("/users"));
+    const data = await request("/users");
+    setUsers(data);
   };
 
   const refreshProjects = async () => {
-    setProjects(await request("/projects"));
+    const data = await request("/projects");
+    setProjects(data);
   };
 
-  const refreshMembers = async (id) => {
-    setMembers(
-      id ? await request(`/projects/${id}/members`) : []
-    );
+  const refreshMembers = async (projectId) => {
+    if (!projectId) {
+      setMembers([]);
+      return;
+    }
+
+    const data = await request(`/projects/${projectId}/members`);
+    setMembers(data);
   };
 
   useEffect(() => {
     Promise.all([
       refreshUsers(),
       refreshProjects(),
-    ]).catch((e) => notify(e.message, true));
+    ]).catch((err) => notify(err.message, true));
   }, []);
 
   useEffect(() => {
-    refreshMembers(selected).catch((e) =>
-      notify(e.message, true)
-    );
+    setMembers([]);
+    setMemberUser("");
+
+    if (!selected) {
+      setMembersLoading(false);
+      return;
+    }
+
+    let active = true;
+    setMembersLoading(true);
+
+    request(`/projects/${selected}/members`)
+      .then((data) => {
+        if (active) {
+          setMembers(data);
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          notify(err.message, true);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setMembersLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
   }, [selected]);
 
   const createProject = async (event) => {
@@ -93,36 +131,38 @@ function App() {
 
       await refreshProjects();
       setSelected(data.project._id);
-    } catch (e) {
-      notify(e.message, true);
+    } catch (err) {
+      notify(err.message, true);
     }
   };
 
   const addMember = async (event) => {
     event.preventDefault();
 
+    if (!selected) return;
+
     try {
-      const data = await request(
-        `/projects/${selected}/members`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            user_id: memberUser,
-          }),
-        }
-      );
+      const data = await request(`/projects/${selected}/members`, {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: memberUser,
+        }),
+      });
 
       notify(data.message);
+      setMemberUser("");
       await refreshMembers(selected);
-    } catch (e) {
-      notify(e.message, true);
+    } catch (err) {
+      notify(err.message, true);
     }
   };
 
-  const removeMember = async (id) => {
+  const removeMember = async (userId) => {
+    if (!selected) return;
+
     try {
       const data = await request(
-        `/projects/${selected}/members/${id}`,
+        `/projects/${selected}/members/${userId}`,
         {
           method: "DELETE",
         }
@@ -130,13 +170,13 @@ function App() {
 
       notify(data.message);
       await refreshMembers(selected);
-    } catch (e) {
-      notify(e.message, true);
+    } catch (err) {
+      notify(err.message, true);
     }
   };
 
   const project = projects.find(
-    (p) => p._id === selected
+    (item) => item._id === selected
   );
 
   return (
@@ -156,7 +196,7 @@ function App() {
           onClick={() =>
             refreshUsers()
               .then(() => notify("Users refreshed."))
-              .catch((e) => notify(e.message, true))
+              .catch((err) => notify(err.message, true))
           }
         >
           Refresh Registered Users
@@ -171,10 +211,10 @@ function App() {
             <input
               required
               value={form.name}
-              onChange={(e) =>
+              onChange={(event) =>
                 setForm({
                   ...form,
-                  name: e.target.value,
+                  name: event.target.value,
                 })
               }
             />
@@ -185,10 +225,10 @@ function App() {
             <textarea
               required
               value={form.description}
-              onChange={(e) =>
+              onChange={(event) =>
                 setForm({
                   ...form,
-                  description: e.target.value,
+                  description: event.target.value,
                 })
               }
             />
@@ -198,16 +238,16 @@ function App() {
             Status
             <select
               value={form.status}
-              onChange={(e) =>
+              onChange={(event) =>
                 setForm({
                   ...form,
-                  status: e.target.value,
+                  status: event.target.value,
                 })
               }
             >
-              <option>Planning</option>
-              <option>Active</option>
-              <option>Completed</option>
+              <option value="Planning">Planning</option>
+              <option value="Active">Active</option>
+              <option value="Completed">Completed</option>
             </select>
           </label>
 
@@ -216,10 +256,10 @@ function App() {
             <select
               required
               value={form.project_lead_id}
-              onChange={(e) =>
+              onChange={(event) =>
                 setForm({
                   ...form,
-                  project_lead_id: e.target.value,
+                  project_lead_id: event.target.value,
                 })
               }
             >
@@ -227,12 +267,12 @@ function App() {
                 Select a registered user
               </option>
 
-              {users.map((u) => (
+              {users.map((user) => (
                 <option
-                  key={u._id}
-                  value={u._id}
+                  key={user._id}
+                  value={user._id}
                 >
-                  {fullName(u)}
+                  {fullName(user)}
                 </option>
               ))}
             </select>
@@ -250,9 +290,9 @@ function App() {
         <button
           type="button"
           onClick={() =>
-            refreshProjects().catch((e) =>
-              notify(e.message, true)
-            )
+            refreshProjects()
+              .then(() => notify("Projects refreshed."))
+              .catch((err) => notify(err.message, true))
           }
         >
           Refresh Projects
@@ -262,32 +302,30 @@ function App() {
           <p>No projects created yet.</p>
         ) : (
           <div className="project-list">
-            {projects.map((p) => (
+            {projects.map((item) => (
               <article
-                key={p._id}
+                key={item._id}
                 className="project-card"
               >
-                <h3>{p.name}</h3>
+                <h3>{item.name}</h3>
 
-                <p>{p.description}</p>
+                <p>{item.description}</p>
 
                 <p>
                   <strong>Status:</strong>{" "}
-                  {p.status}
+                  {item.status}
                 </p>
 
                 <p>
                   <strong>Project Lead:</strong>{" "}
-                  {fullName(p.project_lead_id)}
+                  {fullName(item.project_lead_id)}
                 </p>
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setSelected(p._id)
-                  }
+                  onClick={() => setSelected(item._id)}
                 >
-                  Manage Members
+                  Manage Members & Backlog
                 </button>
               </article>
             ))}
@@ -302,20 +340,20 @@ function App() {
           Select Project
           <select
             value={selected}
-            onChange={(e) =>
-              setSelected(e.target.value)
+            onChange={(event) =>
+              setSelected(event.target.value)
             }
           >
             <option value="">
               Choose a project
             </option>
 
-            {projects.map((p) => (
+            {projects.map((item) => (
               <option
-                key={p._id}
-                value={p._id}
+                key={item._id}
+                value={item._id}
               >
-                {p.name}
+                {item.name}
               </option>
             ))}
           </select>
@@ -325,42 +363,46 @@ function App() {
           <>
             <p>
               <strong>Project Lead:</strong>{" "}
-              {fullName(
-                project.project_lead_id
-              )}
+              {fullName(project.project_lead_id)}
             </p>
 
             <h3>Current Members</h3>
 
-            {members.length === 0 ? (
+            {membersLoading ? (
+              <p>Loading members...</p>
+            ) : members.length === 0 ? (
               <p>No members found.</p>
             ) : (
               <ul>
-                {members.map((m) => (
-                  <li key={m._id}>
-                    {fullName(m.user_id)}{" "}
+                {members
+                  .filter((membership) => membership.user_id)
+                  .map((membership) => {
+                    const member = membership.user_id;
+                    const isLead =
+                      String(member._id) ===
+                      String(project.project_lead_id?._id);
 
-                    {String(m.user_id?._id) ===
-                    String(
-                      project.project_lead_id?._id
-                    ) ? (
-                      <strong>
-                        (Project Lead)
-                      </strong>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          removeMember(
-                            m.user_id._id
-                          )
-                        }
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </li>
-                ))}
+                    return (
+                      <li key={membership._id}>
+                        {fullName(member)}{" "}
+
+                        {isLead ? (
+                          <strong>
+                            (Project Lead)
+                          </strong>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removeMember(member._id)
+                            }
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
               </ul>
             )}
 
@@ -374,22 +416,20 @@ function App() {
                 <select
                   required
                   value={memberUser}
-                  onChange={(e) =>
-                    setMemberUser(
-                      e.target.value
-                    )
+                  onChange={(event) =>
+                    setMemberUser(event.target.value)
                   }
                 >
                   <option value="">
                     Select user
                   </option>
 
-                  {users.map((u) => (
+                  {users.map((user) => (
                     <option
-                      key={u._id}
-                      value={u._id}
+                      key={user._id}
+                      value={user._id}
                     >
-                      {fullName(u)}
+                      {fullName(user)}
                     </option>
                   ))}
                 </select>
@@ -403,12 +443,16 @@ function App() {
         )}
       </section>
 
+      <ProjectBacklog
+        projects={projects}
+        selected={selected}
+        members={members}
+      />
+
       {message && (
         <p
           role="status"
-          className={
-            error ? "error" : "success"
-          }
+          className={error ? "error" : "success"}
         >
           {message}
         </p>
